@@ -9,8 +9,19 @@ class Blackjack
   def initialize
     @deck = Card.full_deck
   end
+
+  # reads command line input to handle gameplay
+  def play
+    loop do
+      response = STDIN.gets.chomp
+      break if response == 'exit'
+      puts(response)
+    end
+  end
 end
 
 game = Blackjack.new
 
-puts("Created game with deck of size: #{game.deck.count}")
+puts('Created game')
+
+game.play
