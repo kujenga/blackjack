@@ -65,6 +65,7 @@ end
 # Player class for blackjack game
 class Player
   attr_accessor :cash
+  attr_accessor :stay
 
   def initialize(dealing = false)
     @dealing = dealing
@@ -83,10 +84,6 @@ class Player
 
   def count
     @hand.reduce(0) { |a, e| a + e.value }
-  end
-
-  def stay
-    @stay = true
   end
 
   def bust?

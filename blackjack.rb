@@ -3,7 +3,10 @@
 require './game_objects.rb'
 require './strings.rb'
 
-# utility method that retrieves a number from command line input
+##########
+# utility methods that retrieve values from command line input
+##########
+
 # repeatedly prompts if the given input is invalid for conversion
 def prompt_for_num(prompt)
   puts prompt
@@ -42,13 +45,14 @@ class Blackjack
     @deck = Deck.new
   end
 
+  # deals a single card to the passed in player, then returns that card
   def deal_one(player)
     c = @deck.draw
     player.take(c)
     c
   end
 
-  # deals each player two cards to start off the round
+  # deals each player two cards to begin the hand
   def initial_deal
     @players.each do |p|
       deal_one(p)
@@ -56,22 +60,30 @@ class Blackjack
     end
   end
 
-  def play_round
-    @players.each_index do |index|
-      p = @players[index]
-      next if p.bust?
-
-      puts "Player #{index}: #{p.hand_to_s}"
-      hit = prompt_for_yn("Your count is #{p.count}, would you like to hit?")
-      if hit
-        puts "drew: #{deal_one(p)}, new count is #{p.count}\n\n"
-        puts BUST_STR if p.bust?
-      else
-        p.stay
-      end
+  # prompts a single player for their action on this round of the hand
+  def prompt_player(p)
+    hit = prompt_for_yn("Your count is #{p.count}, would you like to hit?")
+    if hit
+      puts "drew: #{deal_one(p)}, new count is #{p.count}\n\n"
+      puts BUST_STR if p.bust?
+    else
+      p.stay = true
     end
   end
 
+  # handles the gameplay for a single round, prompting each player accordingly
+  def play_round
+    @players.each_index do |index|
+      p = @players[index]
+      next if p.bust? || p.stay
+
+      puts "Player #{index}: #{p.hand_to_s}"
+      prompt_player(p)
+    end
+  end
+
+  # plays a single hand of gameplay, where each player is prompted in rounds
+  # until they are all either bust or staying
   def play_hand
     initial_deal
     loop do
@@ -84,6 +96,7 @@ class Blackjack
     @deck.build_deck
   end
 
+  # returns a string of each player's to_s concatenated
   def to_s
     str = 'GAME STATUS =>'
     @players.each_index do |i|
