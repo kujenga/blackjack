@@ -1,7 +1,6 @@
 # Copyright 2014 Aaron M. Taylor
 
-require './deck.rb'
-require './player.rb'
+require './game_objects.rb'
 require './strings.rb'
 
 # utility method that retrieves a number from command line input
