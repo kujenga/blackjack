@@ -1,8 +1,21 @@
 # Copyright 2014 Aaron M. Taylor
 
-require './card.rb'
+require './deck.rb'
 require './player.rb'
 require './strings.rb'
+
+# utility method that retrieves a number from command line input
+# repeatedly asks if the given input is invalid for conversion
+def prompt_for_num(prompt)
+  puts prompt
+  loop do
+    begin
+      return Integer(STDIN.gets.chomp) # throws an error for invalid numbers
+    rescue ArgumentError
+      puts 'Please enter a valid number'
+    end
+  end
+end
 
 # A command line blackjack game
 class Blackjack
@@ -14,7 +27,14 @@ class Blackjack
     num_players.times do |_i|
       @players << Player.new
     end
-    @deck = Card.full_deck
+    @deck = Deck.new
+  end
+
+  def play_hand
+    @players.each_index do |index|
+      p = @players[index]
+      puts p
+    end
   end
 
   # reads command line input to handle gameplay
@@ -30,19 +50,13 @@ end
 
 # Scripting code to setup the game and initialize play
 puts BLACKJACK_TITLE
-puts 'Please enter the number of players'
-num_players = 0
-loop do
-  begin
-    num_players = Integer(STDIN.gets.chomp) # throws an error for invalid numbers
-    break
-  rescue ArgumentError
-    puts 'Please enter a valid number'
-  end
-end
+
+# retrieves the count
+num_players = prompt_for_num(PLAYER_COUNT_PROMPT)
 
 game = Blackjack.new(num_players)
 
+puts START_STR
 puts('Created game, each player has $1000')
 
 game.play
