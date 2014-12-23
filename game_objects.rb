@@ -1,6 +1,13 @@
 # Copyright 2014 Aaron M. Taylor
 
-# Card class for blackjack game
+# This file contains class definitions of in-game objects
+
+#########################################
+# Card class for blackjack
+#
+# holds a suit and number
+# provides a value method specific for blackjack gameplay
+#
 class Card
   SUITS = [:spade, :heart, :diamond, :club]
   SUIT_NAMES = { spade: 'Spades', heart: 'Hearts', diamond: 'Diamonds', club: 'Clubs' }
@@ -13,6 +20,7 @@ class Card
     @num = num
   end
 
+  # returns an integer value representing the value of the card according to blackjack rules
   def value
     return @num if @num <= 10 # number cards have their own value
     return 1 if @num == 14 # ace defaults to 1 for now
@@ -24,11 +32,14 @@ class Card
   end
 end
 
-# A wrapper class for a deck of 52 cards, provides appropriate methods for gameplay
+####################################################
+# A wrapper class for a deck of 52 cards
+#
+# provides methods to build the deck, shuffle it, and draw cards
+#
 class Deck
   def initialize
     build_deck
-    shuffle
   end
 
   def build_deck
@@ -62,7 +73,12 @@ class Deck
   end
 end
 
+##############################################
 # Player class for blackjack game
+#
+# keeps track of a hand, providing methods to count score
+# keeps track of in-game state
+#
 class Player
   attr_accessor :cash
   attr_accessor :stay

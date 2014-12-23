@@ -96,14 +96,6 @@ class Blackjack
     @deck.build_deck
   end
 
-  # returns a string of each player's to_s concatenated
-  def to_s
-    str = 'GAME STATUS =>'
-    @players.each_index do |i|
-      str += " Player #{i}: #{@players[i]},"
-    end
-  end
-
   # reads command line input to handle gameplay
   def play
     puts START_STR
@@ -115,6 +107,14 @@ class Blackjack
       hand_count += 1
     end
     puts 'Thanks for playing!'
+  end
+
+  # returns a string of each player's to_s concatenated
+  def to_s
+    str = 'GAME STATUS =>'
+    @players.each_index do |i|
+      str += " Player #{i}: #{@players[i]},"
+    end
   end
 end
 
