@@ -4,7 +4,7 @@ require './game_objects.rb'
 require './strings.rb'
 
 # utility method that retrieves a number from command line input
-# repeatedly asks if the given input is invalid for conversion
+# repeatedly prompts if the given input is invalid for conversion
 def prompt_for_num(prompt)
   puts prompt
   loop do
@@ -16,7 +16,9 @@ def prompt_for_num(prompt)
   end
 end
 
+##################################################
 # A command line blackjack game
+##################################################
 class Blackjack
   attr_accessor :deck
 
@@ -36,8 +38,16 @@ class Blackjack
     end
   end
 
+  def to_s
+    str = 'GAME STATUS =>'
+    @players.each_index do |i|
+      str += " Player #{i}: #{@players[i]},"
+    end
+  end
+
   # reads command line input to handle gameplay
   def play
+    puts START_STR
     loop do
       response = STDIN.gets.chomp
       break if response == 'exit'
@@ -47,15 +57,17 @@ class Blackjack
   end
 end
 
+###########################################################
 # Scripting code to setup the game and initialize play
+###########################################################
+
 puts BLACKJACK_TITLE
 
 # retrieves the count
 num_players = prompt_for_num(PLAYER_COUNT_PROMPT)
 
+# creates a new blackjack game with the user-specificed number of players
 game = Blackjack.new(num_players)
 
-puts START_STR
-puts('Created game, each player has $1000')
-
+# begins gameplay with an interpreter loop inside the Blackjack class
 game.play
