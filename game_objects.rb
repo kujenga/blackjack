@@ -9,11 +9,11 @@
 # provides a value method specific for blackjack gameplay
 #
 class Card
-  SUITS = [:spade, :heart, :diamond, :club]
-  SUIT_NAMES = { spade: 'Spades', heart: 'Hearts', diamond: 'Diamonds', club: 'Clubs' }
+  SUITS = [:spade, :heart, :diamond, :club].freeze
+  SUIT_NAMES = { spade: 'Spades', heart: 'Hearts', diamond: 'Diamonds', club: 'Clubs' }.freeze
   NUM_NAMES = { 2 => 'Two', 3 => 'Three', 4 => 'Four', 5 => 'Five', 6 => 'Six',
                 7 => 'Seven', 8 => 'Eight', 9 => 'Nine', 10 => 'Ten',
-                11 => 'Jack', 12 => 'Queen', 13 => 'King', 14 => 'Ace' }
+                11 => 'Jack', 12 => 'Queen', 13 => 'King', 14 => 'Ace' }.freeze
 
   def initialize(suit, num)
     @suit = suit

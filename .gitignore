@@ -1,8 +1,6 @@
 # based on github's default files
 # https://github.com/github/gitignore/blob/master/Ruby.gitignore
 
-*.sublime-project
-
 *.gem
 *.rbc
 /.config
