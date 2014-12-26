@@ -1,11 +1,14 @@
 # Copyright 2014 Aaron M. Taylor
 
+# scripting code to initialize gameplay is at the bottom of this file
+# `play` method in Blackjack class is the entry point for gameplay
+
 require './game_objects.rb'
 require './strings.rb'
 
-##########
+###################
 # utility methods that retrieve values from command line input
-##########
+###################
 
 # repeatedly prompts if the given input is invalid for conversion
 def prompt_for_num(prompt)
@@ -183,8 +186,9 @@ class Blackjack
   def to_s
     str = 'GAME STATUS =>'
     @players.each_index do |i|
-      str += " Player #{i}: #{@players[i]},"
+      str += "Player #{i}: #{@players[i]}, "
     end
+    str.slice(0, str.length - 2) # removes final ', '
   end
 end
 

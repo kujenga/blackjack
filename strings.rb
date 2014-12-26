@@ -1,7 +1,7 @@
 # Copyright 2014 Aaron M. Taylor
 
 # hardcoded strings used in the blackjack game
-# strings with a '\' character have been appropriately escaped to dispaly properly
+# strings with a '\' character have been appropriately escaped to display properly
 
 # created using:
 # http://patorjk.com/software/taag
