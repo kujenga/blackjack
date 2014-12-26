@@ -60,6 +60,7 @@ class Blackjack
   def deal_one(player)
     c = @deck.draw
     player.take(c)
+    player.count! # uses the sideeffects to modify aces if necessary
     c
   end
 
@@ -69,6 +70,8 @@ class Blackjack
       deal_one(p)
       deal_one(p)
     end
+    deal_one(@dealer)
+    deal_one(@dealer)
   end
 
   # prompts each player for their initial bets for this hand
@@ -117,11 +120,7 @@ class Blackjack
   end
 
   def run_dealer
-    puts 'Scoring Dealer...'
-    # dealer's initial two cards
-    deal_one(@dealer)
-    deal_one(@dealer)
-    puts @dealer.hand_to_s
+    puts "Scoring Dealer...\n#{@dealer.hand_to_s}"
     loop do
       sleep 0.5
       break unless @dealer.will_hit
@@ -129,11 +128,7 @@ class Blackjack
       puts @dealer.hand_to_s
     end
     # print out dealers final status
-    if @dealer.bust?
-      puts "Dealer bust with count #{@dealer.count}"
-    else
-      puts "Dealer standing with count #{@dealer.count}"
-    end
+    puts("Dealer #{@dealer.bust? ? 'bust' : 'standing'} with count #{@dealer.count}")
   end
 
   def settle_bets
@@ -147,7 +142,10 @@ class Blackjack
       elsif player.count < @dealer.count
         win_amt = player.bet_amt
         player.end_round(player.bet_amt + win_amt) # normal win returns pot plus bet
-        puts "Player #{index} won #{win_amt}. Now has cash #{player.cash}"
+        puts "Player #{index} won #{win_amt} and now has cash #{player.cash}"
+      elsif player.count == @dealer.count
+        player.end_round(player.bet_amt) # normal win returns pot plus bet
+        puts "Player #{index} tied and now has cash #{player.cash}"
       end
     end
   end

@@ -35,6 +35,16 @@ class Card
     false
   end
 
+  def ace?
+    num == 14 || num == 1
+  end
+
+  def lower_ace
+    return false unless @num == 14
+    @num = 1
+    true
+  end
+
   def to_s
     "[#{NUM_NAMES[@num]} of #{SUIT_NAMES[@suit]}]"
   end
@@ -68,7 +78,6 @@ class Deck
   # implements the Fischer-Yates or Knuth shuffling algorithm
   def shuffle
     if @cards.count != 52
-      # @cards.each { |c| puts "card: #{c}" }
       fail "on shuffle, #{@cards.count} cards found in the deck"
     end
     # iterates through the deck once
@@ -99,17 +108,20 @@ class Player
     reset
   end
 
+  # called as soon as a player's winnings are known (bust or after dealer has gone)
   def end_round(winnings)
     @cash += winnings
     @bet_amt = 0
     @standing = true
   end
 
+  # called to reset the palyer for the next round of play
   def reset
     @standing = false
     @hand = []
   end
 
+  # keeps track of a players bets, returning false is cash in insufficient
   def bet(amount)
     return false if amount > @cash
     @cash -= amount
@@ -125,9 +137,21 @@ class Player
     @hand.reduce(0) { |a, e| a + e.value }
   end
 
+  # counts the value of the player's hand, converting aces to low if necessary
+  # has side effects that effect the aces in hand if necessary
+  def count!
+    # if the count is bust but there is an ace, lower the ace
+    @hand[first_ace].lower_ace if count > 21 && first_ace
+    count
+  end
+
   # TODO: add functionality for splitting multiple times
   def can_split
     @hand.count == 2 && @hand[0] == @hand[1]
+  end
+
+  def first_ace
+    @hand.each_with_index { |card, i| return i if card.ace? }
   end
 
   def bust?
@@ -144,7 +168,11 @@ class Player
   end
 end
 
-# subclass of player that handles the standard gameplay logic for the dealer
+##############################################
+# Player class for blackjack game
+#
+# subclass of player that handles standard gameplay logic for the dealer
+#
 class Dealer < Player
   def will_hit
     count < 17
