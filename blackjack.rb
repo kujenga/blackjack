@@ -63,7 +63,6 @@ class Blackjack
   def deal_one(player)
     c = @deck.draw
     player.take(c)
-    player.count! # uses the sideeffects to modify aces if necessary
     c
   end
 
@@ -82,7 +81,7 @@ class Blackjack
     puts 'INITIAL BETS:'
     @players.each_index do |index|
       p = @players[index]
-      bet = prompt_for_num("Player #{index}: #{p.hand_to_s}, your count is #{p.count} and you have #{p.cash}. What is you initial bet?")
+      bet = prompt_for_num("Player #{index}: #{p.hand_to_s}, your count is #{p.count} and you have #{p.cash}. What is your initial bet?")
       puts "Player #{index} does not have enough funds, betting 0" unless p.bet(bet)
     end
     puts ''
@@ -92,27 +91,30 @@ class Blackjack
   def prompt_action(player)
     case prompt_for_action('What is your action? hit (h), stand (s), double (d), surrender (e)')
     when /h|H/ # hit (take a card)
-      puts "drew: #{deal_one(player)}, new count is #{player.count}"
+      c = deal_one(player)
+      puts "drew: #{c}, new count is #{player.count}"
     when /s|S/ # stand (end players turn)
       player.standing = true
       puts "standing with count #{player.count}"
     when /d|D/ # double (double wager, take a single card and finish)
       if player.bet(player.bet_amt)
-        puts "doubled and drew: #{deal_one(player)}, new count is #{player.count}, new bet is #{player.bet_amt}"
+        c = deal_one(player)
+        puts "doubled and drew: #{c}, new count is #{player.count}, new bet is #{player.bet_amt}"
       else
-        puts "not enough funds, hit instead and drew: #{deal_one(player)}, new count is #{player.count}"
+        c = deal_one(player)
+        puts "not enough funds, hit instead and drew: #{c}, new count is #{player.count}"
       end
     when /e|E/ # surrender (give up a half-bet and retire from the game)
-      player.end_round(player.bet_amt / 2)
+      player.end_round((player.bet_amt * 0.5).to_i)
     end
   end
 
   # handles gameplay for a single round, prompting each player accordingly
   def play_round
-    @players.each_with_index do |p, index|
+    @players.each_with_index do |p, p_index|
       next if p.bust? || p.standing
 
-      puts("Player #{index}: #{p.hand_to_s} your count is #{p.count}")
+      puts("Player #{p_index}: #{p.hand_to_s} your count is #{p.count}")
       prompt_action(p)
       if p.bust?
         puts BUST_STR
@@ -120,18 +122,6 @@ class Blackjack
       end
       puts ''
     end
-  end
-
-  def run_dealer
-    puts "Scoring Dealer...\n#{@dealer.hand_to_s}"
-    loop do
-      sleep 0.5
-      break unless @dealer.will_hit
-      deal_one(@dealer)
-      puts @dealer.hand_to_s
-    end
-    # print out dealers final status
-    puts("Dealer #{@dealer.bust? ? 'bust' : 'standing'} with count #{@dealer.count}")
   end
 
   def settle_bets
@@ -142,15 +132,31 @@ class Blackjack
         win_amt = (player.bet_amt * 1.5).to_i
         player.end_round(player.bet_amt + win_amt) # blackack pays pot plus 3/2 bet
         puts "Player #{index} got blackjack and won #{win_amt} and now has cash #{player.cash}"
-      elsif player.count < @dealer.count
+      elsif @dealer.bust? || player.count > @dealer.count
         win_amt = player.bet_amt
         player.end_round(player.bet_amt + win_amt) # normal win returns pot plus bet
         puts "Player #{index} won #{win_amt} and now has cash #{player.cash}"
       elsif player.count == @dealer.count
         player.end_round(player.bet_amt) # normal win returns pot plus bet
         puts "Player #{index} tied and now has cash #{player.cash}"
+      else
+        player.end_round(0)
+        puts "Player #{index} lost #{player.bet_amt} and now has cash #{player.cash}"
       end
     end
+  end
+
+  def run_dealer
+    puts "Scoring Dealer...\n#{@dealer.hand_to_s}"
+    loop do
+      sleep 0.5
+      break unless @dealer.will_hit
+      deal_one(@dealer)
+      puts "Count #{@dealer.count}: #{@dealer.hand_to_s}"
+    end
+    # print out dealers final status
+    puts("Dealer #{@dealer.bust? ? 'bust' : 'standing'} with count #{@dealer.count}")
+    settle_bets
   end
 
   # plays a single hand of gameplay, where each player is prompted in rounds
@@ -165,8 +171,8 @@ class Blackjack
       break if @players.reduce(true) { |a, e| a && e.standing }
     end
     run_dealer
-    settle_bets
     @players.each { |p| p.reset }
+    @dealer.reset
   end
 
   # reads command line input to handle gameplay
@@ -176,7 +182,7 @@ class Blackjack
     loop do
       puts "\nPLAYING HAND #{hand_count}\n"
       play_hand
-      break unless prompt_for_yn('Would you like to play another hand?')
+      break unless prompt_for_yn("\nWould you like to play another hand?")
       hand_count += 1
     end
     puts 'Thanks for playing!'

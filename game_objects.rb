@@ -118,7 +118,8 @@ class Player
   # called to reset the palyer for the next round of play
   def reset
     @standing = false
-    @hand = []
+    @hands = []
+    @hands.push []
   end
 
   # keeps track of a players bets, returning false is cash in insufficient
@@ -129,41 +130,43 @@ class Player
     true
   end
 
-  def take(card)
-    @hand.push card
+  def take(card, hand_index = 0)
+    @hands[hand_index].push(card)
+    count!
   end
 
-  def count
-    @hand.reduce(0) { |a, e| a + e.value }
+  def count(hand_index = 0)
+    @hands[hand_index].reduce(0) { |a, e| a + e.value }
   end
 
   # counts the value of the player's hand, converting aces to low if necessary
   # has side effects that effect the aces in hand if necessary
-  def count!
+  def count!(hand_index = 0)
     # if the count is bust but there is an ace, lower the ace
-    @hand[first_ace].lower_ace if count > 21 && first_ace
+    @hands[hand_index][first_ace_high].lower_ace if count > 21 && first_ace_high
     count
   end
 
   # TODO: add functionality for splitting multiple times
-  def can_split
-    @hand.count == 2 && @hand[0] == @hand[1]
+  def can_split(hand_index = 0)
+    @hands[hand_index].count == 2 && @hand[hand_index][0] == @hand[hand_index][1]
   end
 
-  def first_ace
-    @hand.each_with_index { |card, i| return i if card.ace? }
+  def first_ace_high(hand_index = 0)
+    @hands[hand_index].each_with_index { |card, i| return i if card.num == 14 }
+    nil
   end
 
   def bust?
     count > 21
   end
 
-  def blackjack?
-    @hand.count == 2 && count == 21
+  def blackjack?(hand_index = 0)
+    @hands[hand_index].count == 2 && count == 21
   end
 
-  def hand_to_s
-    hand = @hand.reduce('') { |a, e| a + "#{e}, " }
+  def hand_to_s(hand_index = 0)
+    hand = @hands[hand_index].reduce('') { |a, e| a + "#{e}, " }
     hand.slice(0, hand.length - 2)
   end
 end
