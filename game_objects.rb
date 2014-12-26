@@ -220,6 +220,7 @@ class Player
   end
 
   def all_bust?
+    return true if @hands.count  < 1
     @hands.each { |h| return true if h.bust? }
     false
   end
@@ -242,10 +243,14 @@ end
 #
 class Dealer < Player
   def will_hit
-    count < 17
+    @hands.first.count < 17
   end
 
   def hand_to_s
     @hands[0].to_s
+  end
+
+  def count
+    @hands.first.count
   end
 end

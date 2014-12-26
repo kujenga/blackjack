@@ -104,13 +104,13 @@ class Blackjack
   # handles betting payouts once the hand is over
   def settle_bets
     @players.each_with_index do |player,  index|
-      if player.bust? # bust players get nothing
+      if player.all_bust? # bust players get nothing
         puts "Player #{index} was bust with count #{player.count}"
       elsif player.blackjack?
         win_amt = (player.bet_amt * 1.5).to_i
         player.end_round(player.bet_amt + win_amt) # blackack pays pot plus 3/2 bet
         puts "Player #{index} got blackjack and won #{win_amt} and now has cash #{player.cash}"
-      elsif @dealer.bust? || player.count > @dealer.count
+      elsif @dealer.all_bust? || player.count > @dealer.count
         win_amt = player.bet_amt
         player.end_round(player.bet_amt + win_amt) # normal win returns pot plus bet
         puts "Player #{index} won #{win_amt} and now has cash #{player.cash}"
@@ -134,7 +134,7 @@ class Blackjack
       puts "Count #{@dealer.count}: #{@dealer.hand_to_s}"
     end
     # print out dealers final status
-    puts("Dealer #{@dealer.bust? ? 'bust' : 'standing'} with count #{@dealer.count}")
+    puts("Dealer #{@dealer.all_bust? ? 'bust' : 'standing'} with count #{@dealer.count}")
     settle_bets
   end
 
