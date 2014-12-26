@@ -45,6 +45,12 @@ class Card
     true
   end
 
+  def raise_ace
+    return false unless @num == 1
+    @num = 14
+    true
+  end
+
   def to_s
     "[#{NUM_NAMES[@num]} of #{SUIT_NAMES[@suit]}]"
   end
@@ -100,6 +106,7 @@ class Player
   attr_accessor :standing
   attr_accessor :cash
   attr_accessor :bet_amt
+  attr_accessor :hands
 
   def initialize(dealing = false)
     @dealing = dealing
@@ -147,9 +154,17 @@ class Player
     count
   end
 
+  # takes the second of the two identical cards from the specified hand and moves it to a new hand
+  def split(hand_index)
+    return unless can_split(hand_index)
+    c = @hands[hand_index].pop
+    @hands.push []
+    @hands.last.push(c)
+  end
+
   # TODO: add functionality for splitting multiple times
-  def can_split(hand_index = 0)
-    @hands[hand_index].count == 2 && @hand[hand_index][0] == @hand[hand_index][1]
+  def can_split(hand_index)
+    @hands[hand_index].count == 2 && @hands[hand_index][0] == @hands[hand_index][1]
   end
 
   def first_ace_high(hand_index = 0)

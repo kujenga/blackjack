@@ -40,7 +40,7 @@ def prompt_for_action(prompt)
     response = STDIN.gets.chomp
     # hit, stand, double, surrender
     return response if response.match(/h|H|s|S|d|D|e|E/)
-    puts 'invalid response, please try again'
+    print 'invalid response, please try again '
   end
 end
 
@@ -69,8 +69,8 @@ class Blackjack
   # deals each player two cards to begin the hand
   def initial_deal
     @players.each do |p|
-      deal_one(p)
-      deal_one(p)
+      p.take(deal_one(p))
+      # deal_one(p)
     end
     deal_one(@dealer)
     deal_one(@dealer)
@@ -87,9 +87,14 @@ class Blackjack
     puts ''
   end
 
-  # prompts a player for a single action
-  def prompt_action(player)
-    case prompt_for_action('What is your action? hit (h), stand (s), double (d), surrender (e)')
+  def prompt_split(player, h_index)
+    return unless prompt_for_yn("Would you like to split hand #{h_index}?")
+    player.split(h_index)
+    puts "hand #{h_index} is now: #{player.hand_to_s(h_index)} with count #{player.count(h_index)}"
+  end
+
+  def handle_action(player, action)
+    case action
     when /h|H/ # hit (take a card)
       c = deal_one(player)
       puts "drew: #{c}, new count is #{player.count}"
@@ -109,13 +114,25 @@ class Blackjack
     end
   end
 
+  # prompts a player for a single action
+  def prompt_action(player, p_index)
+    puts 'PROMPT ACTION'
+    player.hands.each_index do |h_index|
+      puts("Player #{p_index}, hand #{h_index}: #{player.hand_to_s} your count is #{player.count}")
+      # if the player can split their hand, ask them if they want to.
+      prompt_split(player, h_index) if player.can_split(h_index)
+
+      action = prompt_for_action("On hand #{h_index}, what is your action? #{ACTION_HELP}")
+      handle_action(player, action)
+    end
+  end
+
   # handles gameplay for a single round, prompting each player accordingly
   def play_round
     @players.each_with_index do |p, p_index|
       next if p.bust? || p.standing
 
-      puts("Player #{p_index}: #{p.hand_to_s} your count is #{p.count}")
-      prompt_action(p)
+      prompt_action(p, p_index)
       if p.bust?
         puts BUST_STR
         p.end_round(0)

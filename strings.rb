@@ -44,3 +44,5 @@ HELP_STR = '
 A Command line Blackjack game implemented in Ruby
 ---
 Instructions:'
+
+ACTION_HELP = 'hit (h), stand (s), double (d), surrender (e)'
