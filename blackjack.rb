@@ -67,7 +67,7 @@ class Blackjack
   end
 
   def all_players_finished
-    @players.reduce(true) { |a, e| a && e.standing }
+    @players.reduce(true) { |a, e| a && (e.standing || e.all_bust?) }
   end
 
   #########################################
@@ -77,8 +77,8 @@ class Blackjack
   # deals each player two cards to begin the hand
   def initial_deal
     @players.each do |p|
-      p.take(deal_one(p))
-      # deal_one(p)
+      deal_one(p)
+      deal_one(p)
     end
     deal_one(@dealer)
     deal_one(@dealer)
