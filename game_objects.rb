@@ -11,9 +11,9 @@
 class Card
   SUITS = [:spade, :heart, :diamond, :club].freeze
   SUIT_NAMES = { spade: 'Spades', heart: 'Hearts', diamond: 'Diamonds', club: 'Clubs' }.freeze
-  NUM_NAMES = { 2 => 'Two', 3 => 'Three', 4 => 'Four', 5 => 'Five', 6 => 'Six',
-                7 => 'Seven', 8 => 'Eight', 9 => 'Nine', 10 => 'Ten',
-                11 => 'Jack', 12 => 'Queen', 13 => 'King', 14 => 'Ace' }.freeze
+  NUM_NAMES = { 1 => 'Ace Low', 2 => 'Two', 3 => 'Three', 4 => 'Four', 5 => 'Five',
+                6 => 'Six', 7 => 'Seven', 8 => 'Eight', 9 => 'Nine', 10 => 'Ten',
+                11 => 'Jack', 12 => 'Queen', 13 => 'King', 14 => 'Ace High' }.freeze
 
   attr_accessor :suit
   attr_accessor :num
@@ -26,7 +26,7 @@ class Card
   # returns an integer value representing the value of the card according to blackjack rules
   def value
     return @num if @num <= 10 # number cards have their own value
-    return 1 if @num == 14 # ace defaults to 1 for now
+    return 11 if @num == 14 # ace high is worth 11
     10 # value for face cards
   end
 
@@ -96,13 +96,18 @@ class Player
     @dealing = dealing
     @cash = 1000
     end_round(0)
+    reset
   end
 
   def end_round(winnings)
     @cash += winnings
     @bet_amt = 0
-    @hand = []
+    @standing = true
+  end
+
+  def reset
     @standing = false
+    @hand = []
   end
 
   def bet(amount)
@@ -129,8 +134,19 @@ class Player
     count > 21
   end
 
+  def blackjack?
+    @hand.count == 2 && count == 21
+  end
+
   def hand_to_s
     hand = @hand.reduce('') { |a, e| a + "#{e}, " }
     hand.slice(0, hand.length - 2)
+  end
+end
+
+# subclass of player that handles the standard gameplay logic for the dealer
+class Dealer < Player
+  def will_hit
+    count < 17
   end
 end
