@@ -66,6 +66,10 @@ class Blackjack
     c
   end
 
+  #########################################
+  # Start of game
+  #########################################
+
   # deals each player two cards to begin the hand
   def initial_deal
     @players.each do |p|
@@ -81,66 +85,17 @@ class Blackjack
     puts 'INITIAL BETS:'
     @players.each_index do |index|
       p = @players[index]
-      bet = prompt_for_num("Player #{index}: #{p.hand_to_s}, your count is #{p.count} and you have #{p.cash}. What is your initial bet?")
+      # only one hand exists for the initial round of betting
+      h = p.hands.first
+      bet = prompt_for_num("Player #{index}: #{h}, your count is #{h.count} and you have #{p.cash}. What is your initial bet?")
       puts "Player #{index} does not have enough funds, betting 0" unless p.bet(bet)
     end
     puts ''
   end
 
-  # propmts the player for a split if one is possible
-  def prompt_split(player, h_index)
-    return unless prompt_for_yn("Would you like to split hand #{h_index}?")
-    player.split(h_index)
-    puts "hand #{h_index} is now: #{player.hand_to_s(h_index)} with count #{player.count(h_index)}"
-  end
-
-  def handle_action(player, action)
-    case action
-    when /h|H/ # hit (take a card)
-      c = deal_one(player)
-      puts "drew: #{c}, new count is #{player.count}"
-    when /s|S/ # stand (end players turn)
-      player.standing = true
-      puts "standing with count #{player.count}"
-    when /d|D/ # double (double wager, take a single card and finish)
-      if player.bet(player.bet_amt)
-        c = deal_one(player)
-        puts "doubled and drew: #{c}, new count is #{player.count}, new bet is #{player.bet_amt}"
-      else
-        c = deal_one(player)
-        puts "not enough funds, hit instead and drew: #{c}, new count is #{player.count}"
-      end
-    when /e|E/ # surrender (give up a half-bet and retire from the game)
-      player.end_round((player.bet_amt * 0.5).to_i)
-    end
-  end
-
-  # prompts a player for a single action
-  def prompt_action(player, p_index)
-    puts 'PROMPT ACTION'
-    player.hands.each_index do |h_index|
-      puts("Player #{p_index}, hand #{h_index}: #{player.hand_to_s} your count is #{player.count}")
-      # if the player can split their hand, ask them if they want to.
-      prompt_split(player, h_index) if player.can_split(h_index)
-
-      action = prompt_for_action("On hand #{h_index}, what is your action? #{ACTION_HELP}")
-      handle_action(player, action)
-    end
-  end
-
-  # handles gameplay for a single round, prompting each player accordingly
-  def play_round
-    @players.each_with_index do |p, p_index|
-      next if p.bust? || p.standing
-
-      prompt_action(p, p_index)
-      if p.bust?
-        puts BUST_STR
-        p.end_round(0)
-      end
-      puts ''
-    end
-  end
+  #########################################
+  # End of game
+  #########################################
 
   # handles betting payouts once the hand is over
   def settle_bets
@@ -179,9 +134,68 @@ class Blackjack
     settle_bets
   end
 
-  # plays a single hand of gameplay, where each player is prompted in rounds
+  #########################################
+  # Regular gameplay
+  #########################################
+
+  # propmts the player for a split if one is possible
+  def prompt_split(player, h_index)
+    return unless prompt_for_yn("Would you like to split hand #{h_index}?")
+    player.split(h_index)
+    puts "hand #{h_index} is now: #{player.hands[h_index]} with count #{player.hands[h_index].count}"
+  end
+
+  # handles the user's inputted action for the given hand
+  def handle_action(player, action, h_index)
+    case action
+    when /h|H/ # hit (take a card)
+      c = deal_one(player)
+      puts "drew: #{c}, new count is #{player.hands[h_index].count}"
+    when /s|S/ # stand (end players turn)
+      player.standing = true
+      puts "standing with count #{player.hands[h_index].count}"
+    when /d|D/ # double (double wager, take a single card and finish)
+      if player.bet(player.bet_amt)
+        c = deal_one(player)
+        puts "doubled and drew: #{c}, new count is #{player.hands[h_index].count}, new bet is #{player.bet_amt}"
+      else
+        c = deal_one(player)
+        puts "not enough funds, hit instead and drew: #{c}, new count is #{player.count}"
+      end
+    when /e|E/ # surrender (give up a half-bet and retire from the game)
+      player.end_round((player.bet_amt * 0.5).to_i)
+    end
+  end
+
+  # prompts a player for an action for each of their hands
+  def prompt_action(player, p_index)
+    player.hands.each_index do |h_index|
+      puts("Player #{p_index}, hand #{h_index}: #{player.hands[h_index]} your count is #{player.hands[h_index].count}")
+      # if the player can split their hand, ask them if they want to.
+      prompt_split(player, h_index) if player.hands[h_index].can_split
+
+      action = prompt_for_action("On hand #{h_index}, what is your action? #{ACTION_HELP}")
+      handle_action(player, action, h_index)
+    end
+  end
+
+  # handles gameplay for a single round, prompting each player accordingly
+  def play_round
+    @players.each_with_index do |p, p_index|
+      next if p.bust? || p.standing
+
+      prompt_action(p, p_index)
+      if p.bust?
+        puts BUST_STR
+        p.end_round(0)
+      end
+      puts ''
+    end
+  end
+
+  # plays a single game where each player is prompted in rounds for their action
   # until they are all either bust or standing
-  def play_hand
+  def play_game
     @deck.build_deck # resets the deck for the next game
     initial_deal # deals two cards to each player
     initial_bets # prompts each player for their inital bets
@@ -195,15 +209,15 @@ class Blackjack
     @dealer.reset
   end
 
-  # reads command line input to handle gameplay
+  # top-level loop that handles multiple hands of gameplay
   def play
     puts START_STR
-    hand_count = 1
+    game_count = 1
     loop do
-      puts "\nPLAYING HAND #{hand_count}\n"
-      play_hand
+      puts "\nPLAYING HAND #{game_count}\n"
+      play_game
       break unless prompt_for_yn("\nWould you like to play another hand?")
-      hand_count += 1
+      game_count += 1
     end
     puts 'Thanks for playing!'
   end
