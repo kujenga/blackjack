@@ -15,6 +15,9 @@ class Card
                 7 => 'Seven', 8 => 'Eight', 9 => 'Nine', 10 => 'Ten',
                 11 => 'Jack', 12 => 'Queen', 13 => 'King', 14 => 'Ace' }.freeze
 
+  attr_accessor :suit
+  attr_accessor :num
+
   def initialize(suit, num)
     @suit = suit
     @num = num
@@ -25,6 +28,11 @@ class Card
     return @num if @num <= 10 # number cards have their own value
     return 1 if @num == 14 # ace defaults to 1 for now
     10 # value for face cards
+  end
+
+  def ==(other)
+    return true if other.suit == @suit && other.num == @num
+    false
   end
 
   def to_s
@@ -80,18 +88,28 @@ end
 # keeps track of in-game state
 #
 class Player
+  attr_accessor :standing
   attr_accessor :cash
-  attr_accessor :stay
+  attr_accessor :bet_amt
 
   def initialize(dealing = false)
     @dealing = dealing
     @cash = 1000
-    reset_cards
+    end_round(0)
   end
 
-  def reset_cards
+  def end_round(winnings)
+    @cash += winnings
+    @bet_amt = 0
     @hand = []
-    @stay = false
+    @standing = false
+  end
+
+  def bet(amount)
+    return false if amount > @cash
+    @cash -= amount
+    @bet_amt += amount
+    true
   end
 
   def take(card)
@@ -102,11 +120,17 @@ class Player
     @hand.reduce(0) { |a, e| a + e.value }
   end
 
+  # TODO: add functionality for splitting multiple times
+  def can_split
+    @hand.count == 2 && @hand[0] == @hand[1]
+  end
+
   def bust?
     count > 21
   end
 
   def hand_to_s
-    @hand.reduce('') { |a, e| a + "#{e}, " }
+    hand = @hand.reduce('') { |a, e| a + "#{e}, " }
+    hand.slice(0, hand.length - 2)
   end
 end
