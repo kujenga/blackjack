@@ -1,8 +1,5 @@
 # Copyright 2014 Aaron M. Taylor
 
-# scripting code to initialize gameplay is at the bottom of this file
-# `play` method in Blackjack class is the entry point for gameplay
-
 require './game_objects.rb'
 require './strings.rb'
 
@@ -47,6 +44,9 @@ end
 ##################################################
 # A command line blackjack game
 ##################################################
+#
+# `play` method is the entry point for user interactions
+#
 class Blackjack
   attr_accessor :deck
 
@@ -87,6 +87,7 @@ class Blackjack
     puts ''
   end
 
+  # propmts the player for a split if one is possible
   def prompt_split(player, h_index)
     return unless prompt_for_yn("Would you like to split hand #{h_index}?")
     player.split(h_index)
@@ -141,6 +142,7 @@ class Blackjack
     end
   end
 
+  # handles betting payouts once the hand is over
   def settle_bets
     @players.each_with_index do |player,  index|
       if player.bust? # bust players get nothing
@@ -163,6 +165,7 @@ class Blackjack
     end
   end
 
+  # executes the standard dealer's strategy and then settles bets with players
   def run_dealer
     puts "Scoring Dealer...\n#{@dealer.hand_to_s}"
     loop do
@@ -214,18 +217,3 @@ class Blackjack
     str.slice(0, str.length - 2) # removes final ', '
   end
 end
-
-###########################################################
-# Scripting code to setup the game and initialize play
-###########################################################
-
-puts BLACKJACK_TITLE
-
-# retrieves the count
-num_players = prompt_for_num(PLAYER_COUNT_PROMPT)
-
-# creates a new blackjack game with the user-specificed number of players
-game = Blackjack.new(num_players)
-
-# begins gameplay with an interpreter loop inside the Blackjack class
-game.play
