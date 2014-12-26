@@ -66,6 +66,10 @@ class Blackjack
     c
   end
 
+  def all_players_finished
+    @players.reduce(true) { |a, e| a && e.standing }
+  end
+
   #########################################
   # Start of game
   #########################################
@@ -146,15 +150,18 @@ class Blackjack
   end
 
   # handles the user's inputted action for the given hand
-  def handle_action(player, action, h_index)
+  def handle_action(action, player, h_index)
     case action
-    when /h|H/ # hit (take a card)
+    # hit (take a card)
+    when /h|H/
       c = deal_one(player)
       puts "drew: #{c}, new count is #{player.hands[h_index].count}"
-    when /s|S/ # stand (end players turn)
+    # stand (end players turn)
+    when /s|S/
       player.standing = true
       puts "standing with count #{player.hands[h_index].count}"
-    when /d|D/ # double (double wager, take a single card and finish)
+    # double (double wager, take a single card and finish)
+    when /d|D/
       if player.bet(player.bet_amt)
         c = deal_one(player)
         puts "doubled and drew: #{c}, new count is #{player.hands[h_index].count}, new bet is #{player.bet_amt}"
@@ -162,30 +169,40 @@ class Blackjack
         c = deal_one(player)
         puts "not enough funds, hit instead and drew: #{c}, new count is #{player.count}"
       end
-    when /e|E/ # surrender (give up a half-bet and retire from the game)
+    # surrender (give up a half-bet and retire from the game)
+    when /e|E/
       player.end_round((player.bet_amt * 0.5).to_i)
     end
   end
 
   # prompts a player for an action for each of their hands
-  def prompt_action(player, p_index)
-    player.hands.each_index do |h_index|
-      puts("Player #{p_index}, hand #{h_index}: #{player.hands[h_index]} your count is #{player.hands[h_index].count}")
-      # if the player can split their hand, ask them if they want to.
-      prompt_split(player, h_index) if player.hands[h_index].can_split
+  def prompt_action(player)
+    player.hands.each_with_index do |hand, h_index|
+      puts hand
+      # if the hand is standing, leave it alone
+      if hand.standing
+        puts "hand #{h_index} is standing"
+        next
+      end
 
-      action = prompt_for_action("On hand #{h_index}, what is your action? #{ACTION_HELP}")
-      handle_action(player, action, h_index)
+      puts("on hand #{h_index}: #{hand} your count is #{hand.count}")
+      # if the player can split their hand, ask them if they want to.
+      prompt_split(player, h_index) if player.can_split(h_index)
+
+      handle_action(prompt_for_action("On hand #{h_index}, what is your action? #{ACTION_HELP}"), player, h_index)
     end
+    # gets rid of bust hands
+    player.clean_hands
   end
 
   # handles gameplay for a single round, prompting each player accordingly
   def play_round
     @players.each_with_index do |p, p_index|
-      next if p.bust? || p.standing
+      next if p.all_bust? || p.standing
 
-      prompt_action(p, p_index)
-      if p.bust?
+      puts "Player #{p_index}:"
+      prompt_action(p)
+      if p.all_bust?
         puts BUST_STR
         p.end_round(0)
       end
@@ -202,7 +219,7 @@ class Blackjack
     loop do
       play_round
       # end hand when all players are standing, either by choice or because they are bust
-      break if @players.reduce(true) { |a, e| a && e.standing }
+      break if all_players_finished
     end
     run_dealer
     @players.each { |p| p.reset }

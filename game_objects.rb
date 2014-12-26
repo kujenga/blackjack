@@ -102,9 +102,13 @@ end
 # keeps track of a single hand and its status
 #
 class Hand
+  attr_accessor :bet
+  attr_accessor :standing
+
   def initialize
     @cards = []
-    @bet = []
+    @bet = 0
+    @standing = false
   end
 
   def push(card)
@@ -112,7 +116,7 @@ class Hand
   end
 
   def split
-    return unless can_split
+    return unless splittable
     c = @cards.pop
     h = Hand.new
     h.push(c)
@@ -123,8 +127,12 @@ class Hand
     @cards.reduce(0) { |a, e| a + e.value }
   end
 
+  def bust?
+    count > 21
+  end
+
   # TODO: add functionality for splitting multiple times
-  def can_split
+  def splittable
     @cards.count == 2 && @cards[0] == @cards[1]
   end
 
@@ -133,7 +141,8 @@ class Hand
     nil
   end
 
-  def reset
+  def [](index)
+    @cards[index]
   end
 
   def to_s
@@ -160,18 +169,21 @@ class Player
     reset
   end
 
-  # called as soon as a player's winnings are known (bust or after dealer has gone)
-  def end_round(winnings)
-    @cash += winnings
-    @bet_amt = 0
-    @standing = true
-  end
-
   # called to reset the palyer for the next round of play
   def reset
     @standing = false
     @hands = []
     @hands.push Hand.new
+  end
+
+  # called as soon as a player's winnings are known (bust or after dealer has gone)
+  def end_round(winnings)
+    @cash += winnings
+    @bet_amt = 0
+  end
+
+  def close_hand(h_index)
+    @hands[h_index].standing = true
   end
 
   # keeps track of a players bets, returning false is cash in insufficient
@@ -197,19 +209,29 @@ class Player
     h.count
   end
 
+  def can_split(h_index)
+    @hands[h_index].splittable && @cash >= @hands[h_index].bet
+  end
+
   # takes the second of the two identical cards from the specified hand and moves it to a new hand
   def split(hand_index)
     new_hand = @hands[hand_index].split
     @hands.push(new_hand)
   end
 
-  def bust?
-    @hands.each { |h| return true if h.count > 21 }
+  def all_bust?
+    @hands.each { |h| return true if h.bust? }
     false
   end
 
   def blackjack?(hand_index = 0)
     @hands[hand_index].count == 2 && count == 21
+  end
+
+  def clean_hands
+    @hands.each_with_index do |h, i|
+      @hands.delete_at(i) if h.bust?
+    end
   end
 end
 
