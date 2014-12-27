@@ -22,6 +22,8 @@ $$$$$$$  |$$ |\$$$$$$$ |\$$$$$$$\ $$ | \$$\ $$ |\$$$$$$$ |\$$$$$$$\ $$ | \$$\
 
 PLAYER_COUNT_PROMPT = 'Please enter the number of players'
 
+CL_PROMPT = '=> '
+
 START_STR = "
    ___                  ___           _
   / __|__ _ _ __  ___  | _ ) ___ __ _(_)_ _  ___

@@ -129,6 +129,7 @@ class Hand
     c = @cards.pop
     h = Hand.new
     h.push(c)
+    h.bet = @bet
     h
   end
 
@@ -138,7 +139,11 @@ class Hand
   end
 
   def bust?
-    @surrendered || count > 21
+    count > 21
+  end
+
+  def out?
+    bust? || @surrendered || @standing
   end
 
   def blackjack?
@@ -156,6 +161,13 @@ class Hand
     @cards[index]
   end
 
+  def status
+    return 'bust' if bust?
+    return 'standing' if @standing
+    return 'surrendered' if @surrendered
+    'active'
+  end
+
   def to_s
     str = @cards.reduce('') { |a, e| a + "#{e}, " }
     str.slice(0, str.length - 2)
@@ -168,7 +180,6 @@ end
 # keeps track of hands and in-game state
 #
 class Player
-  attr_accessor :standing
   attr_accessor :cash
   attr_accessor :hands
 
@@ -180,7 +191,6 @@ class Player
 
   # called to reset the palyer for the next round of play
   def reset
-    @standing = false
     @hands = []
     @hands.push Hand.new
   end
@@ -220,13 +230,13 @@ class Player
   # takes the second of the two identical cards from the specified hand and moves it to a new hand
   def split(h_index)
     new_hand = @hands[h_index].split
+    @cash -= new_hand.bet
     @hands.push(new_hand)
   end
 
-  def all_bust?
-    return true if @hands.count  < 1
-    @hands.each { |h| return true if h.bust? }
-    false
+  def finished?
+    @hands.each { |h| return false unless h.out? }
+    true
   end
 
   # allows for cleaner access of player's hands
@@ -248,6 +258,10 @@ class Dealer < Player
 
   def hand_to_s
     @hands[0].to_s
+  end
+
+  def bust?
+    @hands.first.bust?
   end
 
   def count

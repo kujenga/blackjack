@@ -10,8 +10,9 @@ require './strings.rb'
 
 # repeatedly prompts if the given input is invalid for conversion
 def prompt_for_num(prompt)
-  print(prompt + ' ')
+  puts(prompt + ' ')
   loop do
+    print CL_PROMPT
     begin
       return Integer(STDIN.gets.chomp) # throws an error for invalid numbers
     rescue ArgumentError
@@ -22,8 +23,9 @@ end
 
 # utility method for retrieving a y/n answer from command line input
 def prompt_for_yn(prompt)
-  print "#{prompt} [y/n] "
+  puts "#{prompt} [y/n] "
   loop do
+    print CL_PROMPT
     response = STDIN.gets.chomp
     return true if response.match(/y|Y/)
     return false if response.match(/n|N/)
@@ -33,12 +35,13 @@ end
 
 # black-jack specific utility method for retrieving player action from command line input
 def prompt_for_action(prompt)
-  print(prompt + ' ')
+  puts(prompt + ' ')
   loop do
+    print CL_PROMPT
     response = STDIN.gets.chomp
     # hit, stand, double, surrender
     return response if response.match(/h|H|s|S|d|D|e|E/)
-    print 'invalid response, please try again '
+    puts 'invalid response, please try again '
   end
 end
 
@@ -75,7 +78,9 @@ class Blackjack
 
   # helps determine when the game should be scored
   def all_players_finished
-    @players.reduce(true) { |a, e| a && (e.standing || e.all_bust?) }
+    @players.reduce(true) do |acc, player|
+      acc && player.finished?
+    end
   end
 
   #########################################
@@ -111,36 +116,34 @@ class Blackjack
 
   def settle_single_bet(player, hand)
     if hand.surrendered
-      puts "was surrendered with count #{hand.count}"
+      print "was surrendered with count #{hand.count}"
     elsif hand.bust? # bust hands get nothing
-      puts "was bust with count #{hand.count}"
+      print "was bust with count #{hand.count}"
     elsif hand.blackjack?
       win_amt = (hand.bet * 1.5).to_i
       player.return_winnings(hand.bet + win_amt) # blackack pays pot plus 3/2 bet
-      puts "got blackjack and won #{win_amt} and now has cash #{player.cash}"
-    elsif @dealer.all_bust? || hand.count > @dealer.count
+      print "got blackjack and won #{win_amt}"
+    elsif @dealer.bust? || hand.count > @dealer.count
       win_amt = hand.bet
       player.return_winnings(hand.bet + win_amt) # normal win returns pot plus bet
-      puts "won #{win_amt} and now has cash #{player.cash}"
+      print "won #{win_amt}"
     elsif hand.count == @dealer.count
       player.return_winnings(hand.bet) # tie returns pot
-      puts "tied and now has cash #{player.cash}"
+      print 'tied'
     else # player had valid hand but lost
-      puts "lost #{hand.bet} and now has cash #{player.cash}"
+      print "lost #{hand.bet}"
     end
+    puts " and now has cash #{player.cash}"
   end
 
   # handles betting payouts once the hand is over
   def settle_bets
     @players.each_with_index do |player,  p_index|
       # allows for puts if the player had no remaining hands
-      standing_hands = false
       player.hands.each_with_index do |hand, h_index|
         print "Player #{p_index}, hand #{h_index}, "
         settle_single_bet(player, hand)
-        standing_hands = true
       end
-      print "Player #{p_index} was bust and now has cash #{player.cash}" unless standing_hands
     end
   end
 
@@ -155,7 +158,7 @@ class Blackjack
       puts "Count #{@dealer.count}: #{@dealer.hand_to_s}"
     end
     # print out dealers final status
-    puts("Dealer #{@dealer.all_bust? ? 'bust' : 'standing'} with count #{@dealer.count}")
+    puts("Dealer #{@dealer.bust? ? 'bust' : 'standing'} with count #{@dealer.count}")
     settle_bets
   end
 
@@ -179,7 +182,7 @@ class Blackjack
       puts "drew: #{c}, new count is #{player[h_index].count}"
     # stand (end players turn)
     when /s|S/
-      player.standing = true
+      player[h_index].standing = true
       puts "standing with count #{player[h_index].count}"
     # double (double wager, take a single card and finish)
     when /d|D/
@@ -202,8 +205,8 @@ class Blackjack
   def prompt_action(player)
     player.hands.each_with_index do |hand, h_index|
       # if the hand is standing, leave it alone
-      puts "hand #{h_index} is standing" if hand.standing
-      next if hand.standing
+      puts "hand #{h_index} is #{hand.status}" if hand.out?
+      next if hand.out?
 
       puts("On hand #{h_index}: #{hand} your count is #{hand.count}")
       # if the player can split their hand, ask them if they want to.
@@ -216,8 +219,8 @@ class Blackjack
   # handles gameplay for a single round, prompting each player accordingly
   def play_round
     @players.each_with_index do |p, p_index|
-      next if p.all_bust? || p.standing
-      puts "Player #{p_index}:"
+      next if p.finished?
+      puts "Player #{p_index}, cash #{p.cash}:"
       prompt_action(p)
       puts ''
     end
@@ -244,7 +247,7 @@ class Blackjack
     puts START_STR
     game_count = 1
     loop do
-      puts "\n+++++++++++++++++++++++++++++++++++++++++++++++++++"
+      puts "\n+++++++++++++++++++++++++++++++++++++++++++++++++++" if game_count > 1
       puts "PLAYING HAND #{game_count}\n"
       play_game
       break unless prompt_for_yn("\nWould you like to play another hand?")
