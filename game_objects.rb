@@ -34,12 +34,14 @@ class Card
     num == 14 || num == 1
   end
 
+  # converts an ace high to an ace low
   def lower_ace
     return false unless @num == 14
     @num = 1
     true
   end
 
+  # converts an ace low to an ace high
   def raise_ace
     return false unless @num == 1
     @num = 14
@@ -57,7 +59,7 @@ class Card
 end
 
 ####################################################
-# A wrapper class for a deck of 52 cards
+# A wrapper for a deck of 52 cards
 #
 # provides methods to build the deck, shuffle it, and draw cards
 #
@@ -115,6 +117,11 @@ class Hand
     @cards.push(card)
   end
 
+  def splittable
+    @cards.count == 2 && @cards[0] == @cards[1]
+  end
+
+  # splits the hand and returns a new hand with the other half
   def split
     return unless splittable
     c = @cards.pop
@@ -123,6 +130,7 @@ class Hand
     h
   end
 
+  # counts the total value of the hand
   def count
     @cards.reduce(0) { |a, e| a + e.value }
   end
@@ -135,16 +143,13 @@ class Hand
     @cards.count == 2 && count == 21
   end
 
-  # TODO: add functionality for splitting multiple times
-  def splittable
-    @cards.count == 2 && @cards[0] == @cards[1]
-  end
-
+  # returns the index of the first ace high in case it needs to be lowered
   def first_ace_high
     @cards.each_with_index { |card, i| return i if card.num == 14 }
     nil
   end
 
+  # allows for cleaner access of cards
   def [](index)
     @cards[index]
   end
@@ -183,10 +188,6 @@ class Player
   def end_round(winnings)
     @cash += winnings
     @bet_amt = 0
-  end
-
-  def close_hand(h_index)
-    @hands[h_index].standing = true
   end
 
   # keeps track of a players bets, returning false is cash in insufficient
@@ -228,11 +229,12 @@ class Player
     false
   end
 
+  # allows for cleaner access of player's hands
   def [](index)
     @hands[index]
   end
 
-  # removes bust hands from gameplay
+  # removes bust hands from gameplay to simplify logic
   def clean_hands
     @hands.each_with_index do |h, i|
       @hands.delete_at(i) if h.bust?
@@ -244,6 +246,7 @@ end
 # Player class for blackjack game
 #
 # subclass of player that handles standard gameplay logic for the dealer
+# provides simpler methods since the dealer never doubles, splits, or surrenders
 #
 class Dealer < Player
   def will_hit

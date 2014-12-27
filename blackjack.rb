@@ -3,9 +3,10 @@
 require './game_objects.rb'
 require './strings.rb'
 
-###################
+################################
 # utility methods that retrieve values from command line input
-###################
+# these methods ask repeatedly is input is invalid
+################################
 
 # repeatedly prompts if the given input is invalid for conversion
 def prompt_for_num(prompt)
@@ -45,7 +46,12 @@ end
 # A command line blackjack game
 ##################################################
 #
-# `play` method is the entry point for user interactions
+# `play` method is the entry point for command-line user interactions
+#
+# `initial_deal` and `initial_bets` setup each game appropriately
+# `play_game` and `play_round` perform movement through the basic gameplay
+# `prompt_action` performs the majority of user interactions
+# `run_dealer` and the settle methods appropriately reward players who have won
 #
 class Blackjack
   attr_accessor :deck
@@ -66,6 +72,7 @@ class Blackjack
     c
   end
 
+  # helps determine when the game should be scored
   def all_players_finished
     @players.reduce(true) { |a, e| a && (e.standing || e.all_bust?) }
   end
@@ -90,7 +97,7 @@ class Blackjack
     @players.each_index do |index|
       p = @players[index]
       # only one hand exists for the initial round of betting
-      h = p.hands.first
+      h = p[0]
       bet = prompt_for_num("Player #{index}: #{h}, your count is #{h.count} and you have #{p.cash}. What is your initial bet?")
       puts "Player #{index} does not have enough funds, betting 0" unless p.bet(bet)
     end
