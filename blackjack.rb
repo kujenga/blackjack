@@ -66,9 +66,10 @@ class Blackjack
   end
 
   # deals a single card to the passed in player, then returns that card
-  def deal_one(player)
+  def deal_one(player, h_index  = 0)
     c = @deck.draw
-    player.take(c)
+    player.take(c, h_index)
+    puts BUST_STR if player[h_index].bust?
     c
   end
 
@@ -99,7 +100,7 @@ class Blackjack
       # only one hand exists for the initial round of betting
       h = p[0]
       bet = prompt_for_num("Player #{index}: #{h}, your count is #{h.count} and you have #{p.cash}. What is your initial bet?")
-      puts "Player #{index} does not have enough funds, betting 0" unless p.bet(bet)
+      puts "Player #{index} does not have enough funds, betting 0" unless p.bet(bet, 0)
     end
     puts ''
   end
@@ -124,7 +125,7 @@ class Blackjack
       puts "tied and now has cash #{player.cash}"
     else # player had valid hand but lost
       player.end_round(0)
-      puts "lost #{player.bet_amt} and now has cash #{player.cash}"
+      puts "lost #{hand.bet} and now has cash #{player.cash}"
     end
   end
 
@@ -172,7 +173,7 @@ class Blackjack
     case action
     # hit (take a card)
     when /h|H/
-      c = deal_one(player)
+      c = deal_one(player, h_index)
       puts "drew: #{c}, new count is #{player[h_index].count}"
     # stand (end players turn)
     when /s|S/
@@ -181,15 +182,17 @@ class Blackjack
     # double (double wager, take a single card and finish)
     when /d|D/
       if player.bet(player[h_index].bet, h_index)
-        c = deal_one(player)
+        c = deal_one(player, h_index)
         puts "doubled and drew: #{c}, new count is #{player[h_index].count}, new bet is #{player[h_index].bet}"
       else
-        c = deal_one(player)
+        c = deal_one(player, h_index)
         puts "not enough funds, hit instead and drew: #{c}, new count is #{player.count}"
       end
     # surrender (give up a half-bet and retire from the game)
     when /e|E/
-      player.end_round((player.bet_amt * 0.5).to_i)
+      # settles and deletes the hand from the player
+      player.end_round((player[h_index].bet * 0.5).to_i)
+      player.hands.delete_at(h_index)
     end
   end
 
@@ -201,7 +204,7 @@ class Blackjack
       puts "hand #{h_index} is standing" if hand.standing
       next if hand.standing
 
-      puts("on hand #{h_index}: #{hand} your count is #{hand.count}")
+      puts("On hand #{h_index}: #{hand} your count is #{hand.count}")
       # if the player can split their hand, ask them if they want to.
       prompt_split(player, h_index) if player.can_split(h_index)
 
@@ -219,7 +222,6 @@ class Blackjack
       puts "Player #{p_index}:"
       prompt_action(p)
       if p.all_bust?
-        puts BUST_STR
         p.end_round(0)
       end
       puts ''

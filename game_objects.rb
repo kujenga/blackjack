@@ -191,23 +191,23 @@ class Player
   end
 
   # keeps track of a players bets, returning false is cash in insufficient
-  def bet(amount, h_index = 0)
+  def bet(amount, h_index)
     return false if (amount * @hands.count) > @cash
     @cash -= amount
     @hands[h_index].bet += amount
     true
   end
 
-  def take(card, hand_index = 0)
-    @hands[hand_index].push(card)
-    adjust_aces
+  def take(card, h_index)
+    @hands[h_index].push(card)
+    adjust_aces(h_index)
   end
 
   # counts the value of the player's hand, converting aces to low if necessary
   # has side effects that effect the aces in hand if necessary
-  def adjust_aces(hand_index = 0)
+  def adjust_aces(h_index)
     # if the count is bust but there is an ace, lower the ace
-    h = @hands[hand_index]
+    h = @hands[h_index]
     index = h.first_ace_high
     h[index].lower_ace if h.count > 21 && index
     h.count
@@ -218,8 +218,8 @@ class Player
   end
 
   # takes the second of the two identical cards from the specified hand and moves it to a new hand
-  def split(hand_index)
-    new_hand = @hands[hand_index].split
+  def split(h_index)
+    new_hand = @hands[h_index].split
     @hands.push(new_hand)
   end
 
