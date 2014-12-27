@@ -106,11 +106,13 @@ end
 class Hand
   attr_accessor :bet
   attr_accessor :standing
+  attr_accessor :surrendered
 
   def initialize
     @cards = []
     @bet = 0
     @standing = false
+    @surrendered = false
   end
 
   def push(card)
@@ -136,7 +138,7 @@ class Hand
   end
 
   def bust?
-    count > 21
+    @surrendered || count > 21
   end
 
   def blackjack?
@@ -173,7 +175,6 @@ class Player
   def initialize(dealing = false)
     @dealing = dealing
     @cash = 1000
-    end_round(0)
     reset
   end
 
@@ -185,9 +186,8 @@ class Player
   end
 
   # called as soon as a player's winnings are known (bust or after dealer has gone)
-  def end_round(winnings)
+  def return_winnings(winnings)
     @cash += winnings
-    @bet_amt = 0
   end
 
   # keeps track of a players bets, returning false is cash in insufficient
@@ -232,13 +232,6 @@ class Player
   # allows for cleaner access of player's hands
   def [](index)
     @hands[index]
-  end
-
-  # removes bust hands from gameplay to simplify logic
-  def clean_hands
-    @hands.each_with_index do |h, i|
-      @hands.delete_at(i) if h.bust?
-    end
   end
 end
 

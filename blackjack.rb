@@ -85,8 +85,8 @@ class Blackjack
   # deals each player two cards to begin the hand
   def initial_deal
     @players.each do |p|
-      deal_one(p)
-      deal_one(p)
+      p.take(deal_one(p), 0)
+      # deal_one(p)
     end
     deal_one(@dealer)
     deal_one(@dealer)
@@ -110,21 +110,22 @@ class Blackjack
   #########################################
 
   def settle_single_bet(player, hand)
-    if player.all_bust? # bust players get nothing
-      puts "was bust with count #{player.count}"
+    if hand.surrendered
+      puts "was surrendered with count #{hand.count}"
+    elsif hand.bust? # bust hands get nothing
+      puts "was bust with count #{hand.count}"
     elsif hand.blackjack?
       win_amt = (hand.bet * 1.5).to_i
-      player.end_round(hand.bet + win_amt) # blackack pays pot plus 3/2 bet
+      player.return_winnings(hand.bet + win_amt) # blackack pays pot plus 3/2 bet
       puts "got blackjack and won #{win_amt} and now has cash #{player.cash}"
     elsif @dealer.all_bust? || hand.count > @dealer.count
       win_amt = hand.bet
-      player.end_round(hand.bet + win_amt) # normal win returns pot plus bet
+      player.return_winnings(hand.bet + win_amt) # normal win returns pot plus bet
       puts "won #{win_amt} and now has cash #{player.cash}"
     elsif hand.count == @dealer.count
-      player.end_round(hand.bet) # tie returns pot
+      player.return_winnings(hand.bet) # tie returns pot
       puts "tied and now has cash #{player.cash}"
     else # player had valid hand but lost
-      player.end_round(0)
       puts "lost #{hand.bet} and now has cash #{player.cash}"
     end
   end
@@ -145,6 +146,7 @@ class Blackjack
 
   # executes the standard dealer's strategy and then settles bets with players
   def run_dealer
+    sleep 0.5
     puts "Scoring Dealer...\n#{@dealer.hand_to_s}"
     loop do
       sleep 0.5
@@ -165,7 +167,7 @@ class Blackjack
   def prompt_split(player, h_index)
     return unless prompt_for_yn("Would you like to split hand #{h_index}?")
     player.split(h_index)
-    puts "hand #{h_index} is now: #{player[h_index]} with count #{player[h_index].count}"
+    puts "After split, hand #{h_index} is: #{player[h_index]} with count #{player[h_index].count}"
   end
 
   # handles the user's inputted action for the given hand
@@ -191,15 +193,14 @@ class Blackjack
     # surrender (give up a half-bet and retire from the game)
     when /e|E/
       # settles and deletes the hand from the player
-      player.end_round((player[h_index].bet * 0.5).to_i)
-      player.hands.delete_at(h_index)
+      player.return_winnings((player[h_index].bet * 0.5).to_i)
+      player[h_index].surrendered = true
     end
   end
 
   # prompts a player for an action for each of their hands
   def prompt_action(player)
     player.hands.each_with_index do |hand, h_index|
-      puts hand
       # if the hand is standing, leave it alone
       puts "hand #{h_index} is standing" if hand.standing
       next if hand.standing
@@ -208,22 +209,16 @@ class Blackjack
       # if the player can split their hand, ask them if they want to.
       prompt_split(player, h_index) if player.can_split(h_index)
 
-      handle_action(prompt_for_action("On hand #{h_index}, what is your action? #{ACTION_HELP}"), player, h_index)
+      handle_action(prompt_for_action("What is your action? #{ACTION_HELP}"), player, h_index)
     end
-    # gets rid of bust hands
-    player.clean_hands
   end
 
   # handles gameplay for a single round, prompting each player accordingly
   def play_round
     @players.each_with_index do |p, p_index|
       next if p.all_bust? || p.standing
-
       puts "Player #{p_index}:"
       prompt_action(p)
-      if p.all_bust?
-        p.end_round(0)
-      end
       puts ''
     end
   end
