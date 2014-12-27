@@ -131,6 +131,10 @@ class Hand
     count > 21
   end
 
+  def blackjack?
+    @cards.count == 2 && count == 21
+  end
+
   # TODO: add functionality for splitting multiple times
   def splittable
     @cards.count == 2 && @cards[0] == @cards[1]
@@ -159,7 +163,6 @@ end
 class Player
   attr_accessor :standing
   attr_accessor :cash
-  attr_accessor :bet_amt
   attr_accessor :hands
 
   def initialize(dealing = false)
@@ -187,10 +190,10 @@ class Player
   end
 
   # keeps track of a players bets, returning false is cash in insufficient
-  def bet(amount)
-    return false if amount > @cash
+  def bet(amount, h_index = 0)
+    return false if (amount * @hands.count) > @cash
     @cash -= amount
-    @bet_amt += amount
+    @hands[h_index].bet += amount
     true
   end
 
@@ -225,10 +228,11 @@ class Player
     false
   end
 
-  def blackjack?(hand_index = 0)
-    @hands[hand_index].count == 2 && count == 21
+  def [](index)
+    @hands[index]
   end
 
+  # removes bust hands from gameplay
   def clean_hands
     @hands.each_with_index do |h, i|
       @hands.delete_at(i) if h.bust?
