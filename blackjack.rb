@@ -90,8 +90,9 @@ class Blackjack
   # deals each player two cards to begin the hand
   def initial_deal
     @players.each do |p|
-      p.take(deal_one(p), 0)
-      # deal_one(p)
+      # p.take(deal_one(p), 0) # only for testing split behavior
+      deal_one(p)
+      deal_one(p)
     end
     deal_one(@dealer)
     deal_one(@dealer)
