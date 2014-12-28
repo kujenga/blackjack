@@ -9,12 +9,17 @@ require './strings.rb'
 ################################
 
 # repeatedly prompts if the given input is invalid for conversion
-def prompt_for_num(prompt)
+def prompt_for_num(prompt, limit = 1000000)
   puts(prompt + ' ')
   loop do
     print CL_PROMPT
     begin
-      return Integer(STDIN.gets.chomp) # throws an error for invalid numbers
+      i = Integer(STDIN.gets.chomp) # throws an error for invalid numbers
+      if i > limit
+        puts "Too high, please enter a number #{limit} or lower"
+        next
+      end
+      return i
     rescue ArgumentError
       puts 'Please enter a valid number'
     end
@@ -59,12 +64,8 @@ end
 class Blackjack
   attr_accessor :deck
 
-  def initialize(num_players = 4)
+  def initialize
     @dealer = Dealer.new(true)
-    @players = []
-    num_players.times do |_i|
-      @players << Player.new
-    end
     @deck = Deck.new
   end
 
@@ -86,6 +87,15 @@ class Blackjack
   #########################################
   # Start of game
   #########################################
+
+  def initialize_players
+    # retrieves the count
+    num_players = prompt_for_num(PLAYER_COUNT_PROMPT, 10)
+    @players = []
+    num_players.times do |_i|
+      @players << Player.new
+    end
+  end
 
   # deals each player two cards to begin the hand
   def initial_deal
@@ -192,7 +202,7 @@ class Blackjack
         puts "doubled and drew: #{c}, new count is #{player[h_index].count}, new bet is #{player[h_index].bet}"
       else
         c = deal_one(player, h_index)
-        puts "not enough funds, hit instead and drew: #{c}, new count is #{player.count}"
+        puts "not enough funds, hit instead and drew: #{c}, new count is #{player[h_index].count}"
       end
     # surrender (give up a half-bet and retire from the game)
     when /e|E/
@@ -245,6 +255,7 @@ class Blackjack
 
   # top-level loop that handles multiple hands of gameplay
   def play
+    initialize_players
     puts START_STR
     game_count = 1
     loop do
