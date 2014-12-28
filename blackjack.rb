@@ -9,14 +9,14 @@ require './strings.rb'
 ################################
 
 # repeatedly prompts if the given input is invalid for conversion
-def prompt_for_num(prompt, limit = 1000000)
+def prompt_for_num(prompt, limit = 1_000_000)
   puts(prompt + ' ')
   loop do
     print CL_PROMPT
     begin
       i = Integer(STDIN.gets.chomp) # throws an error for invalid numbers
-      if i > limit
-        puts "Too high, please enter a number #{limit} or lower"
+      if i > limit || i <= 0
+        puts(i <= 0 ? 'Number must be greater than zero' : "Too high, please enter a number #{limit} or lower")
         next
       end
       return i
