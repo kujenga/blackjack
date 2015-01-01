@@ -107,11 +107,51 @@ end
 class TestPlayer < MiniTest::Unit::TestCase
   def setup
     @player = Player.new
+    @player2 = Player.new
+    @seven = Card.new(:spade, 7)
+    @jack = Card.new(:heart, 11)
+    @queen = Card.new(:diamond, 12)
+    @ace = Card.new(:spade, 14)
+  end
+
+  def test_betting
+    refute @player.bet(10000, 0), 'Cannot bet more than current cash level'
+    amount = @player.cash
+    assert @player.bet(100, 0), 'should be able to bet an amount less than cash level'
+    assert_equal amount - 100, @player.cash, 'Player\'s cash value should decrease by the amount bet'
+  end
+
+  def test_ace_adjustment
+    @player.take(@seven, 0, false)
+    assert_equal @player[0].count, @player.adjust_aces(0), 'If no ace is present, nothing should be changed'
+    @player.take(@ace, 0, false)
+    assert_equal @player[0].count, @player.adjust_aces(0), 'If ace is present but not bust, nothing should be changed'
+    @player.take(@seven, 0, false)    
+    refute_equal @player[0].count, @player.adjust_aces(0), 'If ace is present and bust, should be adjusted'
+    refute @player[0].bust?, 'Player hand should not bust after ace adjustment'
+  end
+
+  def test_splitting
+    refute @player.can_split?(0), 'Player with non-paired cards cannot split'
+    @player2.take(@jack, 0)
+    @player2.take(@queen, 0)
+    assert @player2.can_split?(0), 'Player should be able to split'
+    @player2.split(0)
+    assert @player2.has_split?, 'Player should have split after `split` call'
   end
 end
 
 class TestDealer < MiniTest::Unit::TestCase
   def setup
     @dealer = Dealer.new
+  end
+
+  def test_will_hit
+    @dealer.take(Card.new(:spade, 13), 0)
+    assert @dealer.will_hit, 'Dealer should hit with a count of 10'
+    @dealer.take(Card.new(:spade, 4), 0)
+    assert @dealer.will_hit, 'Dealer should hit with a count of 14'
+    @dealer.take(Card.new(:spade, 7), 0)
+    refute @dealer.will_hit, 'Dealer should not hit with a count of 21'
   end
 end

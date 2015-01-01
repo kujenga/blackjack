@@ -216,9 +216,9 @@ class Player
     true
   end
 
-  def take(card, h_index)
+  def take(card, h_index, adjust = true)
     @hands[h_index].push(card)
-    adjust_aces(h_index)
+    adjust_aces(h_index) if adjust
   end
 
   # counts the value of the player's hand, converting aces to low if necessary
@@ -231,12 +231,12 @@ class Player
     h.count
   end
 
-  def can_split(h_index)
+  def can_split?(h_index)
     @hands[h_index].splittable? && @cash >= @hands[h_index].bet
   end
 
   def has_split?
-    return @hands.count < 1
+    return @hands.count > 1
   end
 
   # takes the second of the two identical cards from the specified hand and moves it to a new hand
@@ -271,10 +271,6 @@ class Dealer < Player
 
   def will_hit
     hand.count < 17
-  end
-
-  def hand_to_s
-    hand.to_s
   end
 
   def bust?

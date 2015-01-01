@@ -219,7 +219,7 @@ class Blackjack
 
     puts("With hand: #{hand} your count is #{hand.count}")
     # if the player can split their hand, ask them if they want to.
-    prompt_split(player, h_index) if player.can_split(h_index)
+    prompt_split(player, h_index) if player.can_split?(h_index)
 
     handle_action(prompt_for_action("What is your action? #{ACTION_HELP}"), player, h_index)
   end
@@ -239,7 +239,7 @@ class Blackjack
 
       puts("On hand #{h_index}: #{hand} your count is #{hand.count}")
       # if the player can split their hand, ask them if they want to.
-      prompt_split(player, h_index) if player.can_split(h_index)
+      prompt_split(player, h_index) if player.can_split?(h_index)
 
       handle_action(prompt_for_action("What is your action? #{ACTION_HELP}"), player, h_index)
     end
