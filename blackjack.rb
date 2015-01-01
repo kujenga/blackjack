@@ -73,7 +73,7 @@ class Blackjack
   end
 
   # deals a single card to the passed in player, then returns that card
-  def deal_one(player, h_index  = 0)
+  def deal_one(player, h_index = 0)
     c = @deck.draw
     player.take(c, h_index)
     puts BUST_STR if player[h_index].bust?
@@ -118,8 +118,8 @@ class Blackjack
       p = @players[index]
       # only one hand exists for the initial round of betting
       h = p[0]
-      bet = prompt_for_num("Player #{index}: #{h}, your count is #{h.count} and you have #{p.cash}. What is your initial bet?")
-      puts "Player #{index} does not have enough funds, betting 0" unless p.bet(bet, 0)
+      bet = prompt_for_num("Player #{index + 1}: #{h}, your count is #{h.count} and you have #{p.cash}. What is your initial bet?")
+      puts "Player #{index + 1} does not have enough funds, betting 0" unless p.bet(bet, 0)
     end
     puts ''
   end
@@ -155,7 +155,7 @@ class Blackjack
     @players.each_with_index do |player,  p_index|
       # allows for puts if the player had no remaining hands
       player.hands.each_with_index do |hand, h_index|
-        print "Player #{p_index}, hand #{h_index}, "
+        print "Player #{p_index + 1}, hand #{h_index + 1}, "
         settle_single_bet(player, hand)
       end
     end
@@ -182,9 +182,9 @@ class Blackjack
 
   # propmts the player for a split if one is possible
   def prompt_split(player, h_index)
-    return unless prompt_for_yn("Would you like to split hand #{h_index}?")
+    return unless prompt_for_yn("Would you like to split hand #{h_index + 1}?")
     player.split(h_index)
-    puts "After split, hand #{h_index} is: #{player[h_index]} with count #{player[h_index].count}"
+    puts "After split, hand #{h_index + 1} is: #{player[h_index]} with count #{player[h_index].count}"
   end
 
   # handles the user's inputted action for the given hand
@@ -216,15 +216,16 @@ class Blackjack
   end
 
   def prompt_single_hand(player)
+    hand = player.hands[0]
     # if the hand is standing, leave it alone
     puts "hand is #{hand.status}" if hand.out?
     return if hand.out?
 
     puts("With hand: #{hand} your count is #{hand.count}")
     # if the player can split their hand, ask them if they want to.
-    prompt_split(player, h_index) if player.can_split?(h_index)
+    prompt_split(player, 0) if player.can_split?(0)
 
-    handle_action(prompt_for_action("What is your action? #{ACTION_HELP}"), player, h_index)
+    handle_action(prompt_for_action("What is your action? #{ACTION_HELP}"), player, 0)
   end
 
   # prompts a player for an action for each of their hands
@@ -237,10 +238,10 @@ class Blackjack
     # if the player has split, iterate over all hands
     player.hands.each_with_index do |hand, h_index|
       # if the hand is standing, leave it alone
-      puts "hand #{h_index} is #{hand.status}" if hand.out?
+      puts "hand #{h_index + 1} is #{hand.status}" if hand.out?
       next if hand.out?
 
-      puts("On hand #{h_index}: #{hand} your count is #{hand.count}")
+      puts("On hand #{h_index + 1}: #{hand} your count is #{hand.count}")
       # if the player can split their hand, ask them if they want to.
       prompt_split(player, h_index) if player.can_split?(h_index)
 
@@ -252,7 +253,7 @@ class Blackjack
   def play_round
     @players.each_with_index do |p, p_index|
       next if p.finished?
-      puts "Player #{p_index}, cash #{p.cash}:"
+      puts "Player #{p_index + 1}, cash #{p.cash}:"
       prompt_action(p)
       puts ''
     end
@@ -302,7 +303,7 @@ class Blackjack
   def to_s
     str = 'GAME STATUS =>'
     @players.each_index do |i|
-      str += "Player #{i}: #{@players[i]}, "
+      str += "Player #{i + 1}: #{@players[i]}, "
     end
     str.slice(0, str.length - 2) # removes final ', '
   end
