@@ -127,13 +127,13 @@ class Hand
 
   # two cards are present and they have equal value
   # true equality is not necessary, as pairs of face cards can be split
-  def splittable
+  def splittable?
     @cards.count == 2 && @cards[0].value == @cards[1].value
   end
 
   # splits the hand and returns a new hand with the other half
   def split
-    return unless splittable
+    return unless splittable?
     c = @cards.pop
     h = Hand.new
     h.push(c)
@@ -232,7 +232,7 @@ class Player
   end
 
   def can_split(h_index)
-    @hands[h_index].splittable && @cash >= @hands[h_index].bet
+    @hands[h_index].splittable? && @cash >= @hands[h_index].bet
   end
 
   def has_split?
