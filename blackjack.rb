@@ -66,7 +66,7 @@ class Blackjack
 
   def initialize
     @dealer = Dealer.new(true)
-    @deck = Deck.new
+    @deck = Deck.new(6)
   end
 
   # deals a single card to the passed in player, then returns that card
@@ -161,12 +161,12 @@ class Blackjack
   # executes the standard dealer's strategy and then settles bets with players
   def run_dealer
     sleep 0.5
-    puts "Scoring Dealer...\n#{@dealer.hand_to_s}"
+    puts "Scoring Dealer...\n#{@dealer}"
     loop do
       sleep 0.5
       break unless @dealer.will_hit
       deal_one(@dealer)
-      puts "Count #{@dealer.count}: #{@dealer.hand_to_s}"
+      puts @dealer.to_s
     end
     # print out dealers final status
     puts("Dealer #{@dealer.bust? ? 'bust' : 'standing'} with count #{@dealer.count}")
@@ -212,8 +212,26 @@ class Blackjack
     end
   end
 
+  def prompt_single_hand(player)
+    # if the hand is standing, leave it alone
+    puts "hand is #{hand.status}" if hand.out?
+    return if hand.out?
+
+    puts("With hand: #{hand} your count is #{hand.count}")
+    # if the player can split their hand, ask them if they want to.
+    prompt_split(player, h_index) if player.can_split(h_index)
+
+    handle_action(prompt_for_action("What is your action? #{ACTION_HELP}"), player, h_index)
+  end
+
   # prompts a player for an action for each of their hands
   def prompt_action(player)
+    # if the player has not split, no need to iterate over all hands
+    unless player.has_split?
+      prompt_single_hand(player)
+      return
+    end
+    # if the player has split, iterate over all hands
     player.hands.each_with_index do |hand, h_index|
       # if the hand is standing, leave it alone
       puts "hand #{h_index} is #{hand.status}" if hand.out?
@@ -240,8 +258,8 @@ class Blackjack
   # plays a single game where each player is prompted in rounds for their action
   # until they are all either bust or standing
   def play_game
-    @deck.build_deck # resets the deck for the next game
     initial_deal # deals two cards to each player
+    puts "Dealer showing: #{@dealer.top_card}"
     initial_bets # prompts each player for their inital bets
     loop do
       play_round
@@ -255,17 +273,26 @@ class Blackjack
 
   # top-level loop that handles multiple hands of gameplay
   def play
-    initialize_players
-    puts START_STR
-    game_count = 1
-    loop do
-      puts "\n+++++++++++++++++++++++++++++++++++++++++++++++++++" if game_count > 1
-      puts "PLAYING HAND #{game_count}\n"
-      play_game
-      break unless prompt_for_yn("\nWould you like to play another hand?")
-      game_count += 1
+    begin
+      initialize_players
+      puts START_STR
+      game_count = 1
+      loop do
+        puts "\n+++++++++++++++++++++++++++++++++++++++++++++++++++" if game_count > 1
+        puts "PLAYING HAND #{game_count}\n"
+        # resets the deck every 10 hands or when cards are beginning to run low
+        if game_count % 10 == 1 || @deck.count < 30
+          puts "Newly shuffled multideck of #{@deck.num_decks} full decks in play"
+          @deck.build_deck
+        end
+        play_game
+        break unless prompt_for_yn("\nWould you like to play another hand?")
+        game_count += 1
+      end
+      puts 'Thanks for playing!'
+    rescue Interrupt
+      puts "\nSee ya!"
     end
-    puts 'Thanks for playing!'
   end
 
   # returns a string of each player's to_s concatenated

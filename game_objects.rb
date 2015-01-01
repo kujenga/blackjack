@@ -53,8 +53,7 @@ class Card
   end
 
   def ==(other)
-    return true if other.suit == @suit && other.num == @num
-    false
+    other.suit == @suit && other.num == @num
   end
 end
 
@@ -64,18 +63,27 @@ end
 # provides methods to build the deck, shuffle it, and draw cards
 #
 class Deck
-  def initialize
+  attr_accessor :num_decks
+
+  def initialize(num_decks = 1)
+    @num_decks = num_decks
     build_deck
   end
 
   def build_deck
     @cards = []
-    Card::SUITS.each do |suit|
-      (2..14).each do |i|
-        @cards << Card.new(suit, i)
+    @num_decks.times do
+      Card::SUITS.each do |suit|
+        (2..14).each do |i|
+          @cards << Card.new(suit, i)
+        end
       end
     end
     shuffle
+  end
+
+  def count
+    @cards.count
   end
 
   def draw
@@ -84,10 +92,8 @@ class Deck
   end
 
   # implements the Fischer-Yates or Knuth shuffling algorithm
+  # for an efficient and fully randomized shuffle
   def shuffle
-    if @cards.count != 52
-      fail "on shuffle, #{@cards.count} cards found in the deck"
-    end
     # iterates through the deck once
     (0...@cards.count).each do |cur_index|
       # choose a random index after the current
@@ -119,8 +125,10 @@ class Hand
     @cards.push(card)
   end
 
+  # two cards are present and they have equal value
+  # true equality is not necessary, as pairs of face cards can be split
   def splittable
-    @cards.count == 2 && @cards[0] == @cards[1]
+    @cards.count == 2 && @cards[0].value == @cards[1].value
   end
 
   # splits the hand and returns a new hand with the other half
@@ -227,6 +235,10 @@ class Player
     @hands[h_index].splittable && @cash >= @hands[h_index].bet
   end
 
+  def has_split?
+    return @hands.count < 1
+  end
+
   # takes the second of the two identical cards from the specified hand and moves it to a new hand
   def split(h_index)
     new_hand = @hands[h_index].split
@@ -252,19 +264,32 @@ end
 # provides simpler methods since the dealer never doubles, splits, or surrenders
 #
 class Dealer < Player
+  # because the dealer never splits
+  def hand
+    @hands.first
+  end
+
   def will_hit
-    @hands.first.count < 17
+    hand.count < 17
   end
 
   def hand_to_s
-    @hands[0].to_s
+    hand.to_s
   end
 
   def bust?
-    @hands.first.bust?
+    hand.bust?
   end
 
   def count
-    @hands.first.count
+    hand.count
+  end
+
+  def top_card
+    hand[0]
+  end
+
+  def to_s
+    "Count: #{count} Hand: #{hand}"
   end
 end
