@@ -14,7 +14,8 @@ def prompt_for_num(prompt, limit = 1_000_000)
   loop do
     print CL_PROMPT
     begin
-      i = Integer(STDIN.gets.chomp) # throws an error for invalid numbers
+      response = STDIN.gets || ''
+      i = Integer(response.chomp) # throws an error for invalid numbers
       if i > limit || i <= 0
         puts(i <= 0 ? 'Number must be greater than zero' : "Too high, please enter a number #{limit} or lower")
         next
@@ -31,7 +32,8 @@ def prompt_for_yn(prompt)
   puts "#{prompt} [y/n] "
   loop do
     print CL_PROMPT
-    response = STDIN.gets.chomp
+    response = STDIN.gets || ''
+    response.chomp!
     return true if response.match(/y|Y/)
     return false if response.match(/n|N/)
     puts 'invalid response, please try again'
@@ -43,7 +45,8 @@ def prompt_for_action(prompt)
   puts(prompt + ' ')
   loop do
     print CL_PROMPT
-    response = STDIN.gets.chomp
+    response = STDIN.gets || ''
+    response.chomp!
     # hit, stand, double, surrender
     return response if response.match(/h|H|s|S|d|D|e|E/)
     puts 'invalid response, please try again '
