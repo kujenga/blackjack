@@ -102,6 +102,10 @@ class Deck
       @cards[cur_index], @cards[random_index] = @cards[random_index], @cards[cur_index]
     end
   end
+
+  def to_s
+    @cards.reduce('') { |a, e| "#{a}#{e}\n" }
+  end
 end
 
 ##############################################

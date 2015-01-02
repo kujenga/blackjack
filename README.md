@@ -19,3 +19,5 @@ I added a line to display the dealers single face-up card at the beginning of th
 I fixed an issue where the `splittable` method on the `Hand` class was checking for actual card equality rather than value equality. In blackjack, any time a hand consists of a pair of cards of equal value, it can be split.
 
 I also added more realistic handling of the deck based on what actual casinos do, where the dealer draws from a multideck made up of of 6 full decks that is kept through ten rounds of play, then reset.
+
+I added unit tests for the game objects to ensure that everything was working as it should be. The tests can be run on their own, or in the `run.rb` script by specifying a 'test' argument from the command line
