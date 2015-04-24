@@ -1,11 +1,11 @@
 # Unit tests for blackjack
 
+require 'coveralls'
+Coveralls.wear!
+
 require 'minitest/autorun'
 require 'minitest/unit'
 require './game_objects.rb'
-
-require 'coveralls'
-Coveralls.wear!
 
 class TestCard < MiniTest::Test
   def setup
