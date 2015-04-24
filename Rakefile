@@ -1,7 +1,7 @@
 # Rakefile for testing and execution
 # Copyright 2014 Aaron M. Taylor
 
-task default: %w[test run]
+task default: %w[test]
 
 task :run do
   require './blackjack.rb'
