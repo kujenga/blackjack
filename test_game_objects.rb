@@ -1,8 +1,10 @@
-require 'minitest/unit'
+# Unit tests for blackjack
+
 require 'minitest/autorun'
+require 'minitest/unit'
 require './game_objects.rb'
 
-class TestCard < MiniTest::Unit::TestCase
+class TestCard < MiniTest::Test
   def setup
     @card = Card.new(:spade, 4)
     @king = Card.new(:spade, 13)
@@ -30,7 +32,7 @@ class TestCard < MiniTest::Unit::TestCase
   end
 end
 
-class TestDeck < MiniTest::Unit::TestCase
+class TestDeck < MiniTest::Test
   def setup
     @deck = Deck.new
     @multideck = Deck.new(6)
@@ -53,7 +55,7 @@ class TestDeck < MiniTest::Unit::TestCase
   end
 end
 
-class TestHand < MiniTest::Unit::TestCase
+class TestHand < MiniTest::Test
   def setup
     @blackjack = Hand.new
     @blackjack.push(Card.new(:spade, 14))
@@ -104,7 +106,7 @@ class TestHand < MiniTest::Unit::TestCase
   end
 end
 
-class TestPlayer < MiniTest::Unit::TestCase
+class TestPlayer < MiniTest::Test
   def setup
     @player = Player.new
     @player2 = Player.new
@@ -141,7 +143,7 @@ class TestPlayer < MiniTest::Unit::TestCase
   end
 end
 
-class TestDealer < MiniTest::Unit::TestCase
+class TestDealer < MiniTest::Test
   def setup
     @dealer = Dealer.new
   end
