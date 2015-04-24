@@ -1,6 +1,8 @@
 # Blackjack
 #### Created by Aaron Taylor
 
+[![Coverage Status](https://coveralls.io/repos/kujenga/blackjack/badge.svg)](https://coveralls.io/r/kujenga/blackjack)
+
 A command line game implemented in Ruby
 
 To get started, enter `./run.rb` in the command line
