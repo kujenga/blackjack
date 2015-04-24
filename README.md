@@ -1,6 +1,7 @@
 # Blackjack
 #### Created by Aaron Taylor
 
+[![Build Status](https://travis-ci.org/kujenga/blackjack.svg?branch=master)](https://travis-ci.org/kujenga/blackjack)
 [![Coverage Status](https://coveralls.io/repos/kujenga/blackjack/badge.svg)](https://coveralls.io/r/kujenga/blackjack)
 
 A command line game implemented in Ruby
